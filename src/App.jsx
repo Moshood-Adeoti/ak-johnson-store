@@ -17,11 +17,22 @@ import {
   Plus,
   Minus,
   Trash2,
+  Lock,
+  Eye, EyeOff
 } from "lucide-react";
+
+ 
+
+ 
+
 
 // ---- CONFIG ----
 const SHOP_NAME = "AK Johnson Pharmacy & Stores";
 const WHATSAPP_NUMBER = "2348036252259"; // <-- CHANGE TO YOUR WHATSAPP NUMBER
+// Passcode gate for "Manage Products" — only people who know this can open
+// the sheet link. Change this to something only you and the CEO know.
+// NOTE: this is a frontend convenience gate, not real security — see chat.
+const ADMIN_PASSCODE = "AKJ2026";
 const ADDRESS = "Odo Oja, Otun-Ekiti, Ekiti State, Nigeria";
 const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbx3TBDDtHHudadUgpCt4DyoLH7Gg4h-vYAn8oGJSKL_mBT3oK7BE2hEw8JUuM9XQYF5Zw/exec"; // KEEP THIS ONE
 const GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/15oHCDIlR977wrf6IEPXucIIaK53rzfeErMl1fZ7EeRg/edit?usp=drivesdk"; // <-- GET THIS FROM GOOGLE DRIVE AND PASTE HERE
@@ -73,6 +84,10 @@ export default function PharmacyFoamStore() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [showAdminModal, setShowAdminModal] = useState(false);
+const [adminPassword, setAdminPassword] = useState("");
+const [passwordError, setPasswordError] = useState("");
+const [showPassword, setShowPassword] = useState(false);
 
   const [cart, setCart] = useState(() => {
     // Restore any cart saved from a previous visit (survives refresh/close tab)
@@ -162,6 +177,32 @@ export default function PharmacyFoamStore() {
     return `Hello ${SHOP_NAME}, I'd like to order:\n${lines.join("\n")}\n\nTotal: ₦${cartTotal.toLocaleString()}`;
   };
 
+
+// const openManageProducts = () => {
+//   const password = prompt("Enter Admin Password");
+
+//   if (password === ADMIN_PASSCODE) {
+//     window.open(GOOGLE_SHEET_URL, "_blank");
+//   } else if (password !== null) {
+//     alert("Incorrect password!");
+//   }
+// };
+
+
+const verifyAdmin = () => {
+  if (adminPassword === ADMIN_PASSCODE) {
+    window.open(GOOGLE_SHEET_URL, "_blank");
+
+    setShowAdminModal(false);
+    setAdminPassword("");
+    setPasswordError("");
+  } else {
+    setPasswordError("Incorrect password");
+  }
+};
+
+
+
   return (
     <div style={{ fontFamily: "'Inter', sans-serif", background: COLORS.bg, color: COLORS.ink }}>
       <style>{`
@@ -180,15 +221,18 @@ export default function PharmacyFoamStore() {
           </div>
 
           <div className="hidden md:flex items-center gap-3">
-            <a
-              href={GOOGLE_SHEET_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-full font-semibold text-sm transition hover:bg-[#F1EEE5]"
-              style={{ border: `1px solid ${COLORS.green}`, color: COLORS.green }}
-            >
-              <Settings size={15} /> Manage Products
-            </a>
+           <button
+  onClick={() => setShowAdminModal(true)}
+  className="flex items-center gap-2 px-4 py-2.5 rounded-full font-semibold text-sm transition hover:bg-[#F1EEE5]"
+  style={{
+    border: `1px solid ${COLORS.green}`,
+    color: COLORS.green,
+  }}
+>
+  <Lock size={15} />
+  <Settings size={15} />
+  Manage Products
+</button>
             <a
               href={waLink(`Hello ${SHOP_NAME}, I'd like to place an order.`)}
               target="_blank"
@@ -233,15 +277,18 @@ export default function PharmacyFoamStore() {
 
         {menuOpen && (
           <div className="md:hidden px-6 pb-4 flex flex-col gap-3">
-            <a
-              href={GOOGLE_SHEET_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center justify-center gap-2 px-5 py-3 rounded-full font-semibold text-sm w-full"
-              style={{ border: `1px solid ${COLORS.green}`, color: COLORS.green }}
-            >
-              <Settings size={15} /> Manage Products
-            </a>
+  <button
+  onClick={() => setShowAdminModal(true)}
+  className="flex items-center gap-2 px-4 py-2.5 rounded-full font-semibold text-sm transition hover:bg-[#F1EEE5]"
+  style={{
+    border: `1px solid ${COLORS.green}`,
+    color: COLORS.green,
+  }}
+>
+  <Lock size={15} />
+  <Settings size={15} />
+  Manage Products
+</button>
             <a
               href={waLink(`Hello ${SHOP_NAME}, I'd like to place an order.`)}
               target="_blank"
@@ -486,6 +533,95 @@ export default function PharmacyFoamStore() {
           </div>
         </div>
       )}
+      {showAdminModal && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] px-4">
+
+    <div
+      className="bg-white rounded-3xl w-full max-w-md p-8 relative shadow-2xl"
+      style={{ border: `1px solid ${COLORS.line}` }}
+    >
+
+      {/* Close Button */}
+      <button
+        onClick={() => {
+          setShowAdminModal(false);
+          setAdminPassword("");
+          setPasswordError("");
+        }}
+        className="absolute top-5 right-5"
+      >
+        <X size={22} />
+      </button>
+
+      {/* Icon */}
+      <div
+        className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
+        style={{
+          background: COLORS.green,
+          color: "white",
+        }}
+      >
+        <Lock size={30} />
+      </div>
+
+      <h2
+        className="display text-3xl font-bold text-center mb-2"
+        style={{ color: COLORS.green }}
+      >
+        Admin Access
+      </h2>
+
+      <p className="text-center text-gray-500 mb-6">
+        Enter your password to manage products.
+      </p>
+
+      <div className="relative">
+  <input
+    type={showPassword ? "text" : "password"}
+    value={adminPassword}
+    onChange={(e) => {
+      setAdminPassword(e.target.value);
+      setPasswordError("");
+    }}
+    onKeyDown={(e) => {
+      if (e.key === "Enter") verifyAdmin();
+    }}
+    placeholder="Enter password"
+    className="w-full px-5 py-4 pr-14 rounded-xl outline-none"
+    style={{
+      border: `1px solid ${COLORS.line}`,
+    }}
+  />
+
+  <button
+    type="button"
+    onClick={() => setShowPassword((prev) => !prev)}
+    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+  >
+    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+  </button>
+</div>
+
+      {passwordError && (
+        <p className="text-red-500 text-sm mt-2">
+          {passwordError}
+        </p>
+      )}
+
+      <button
+        onClick={verifyAdmin}
+        className="w-full mt-6 py-4 rounded-xl font-bold transition hover:opacity-90"
+        style={{
+          background: COLORS.green,
+          color: "white",
+        }}
+      >
+        Unlock
+      </button>
+    </div>
+
+  </div>
+)}
     </div>
   );
 }
