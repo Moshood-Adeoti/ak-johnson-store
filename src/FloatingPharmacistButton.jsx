@@ -88,6 +88,7 @@ font-bold
 shadow-2xl
 select-none
 max-w-[90vw]
+animate-bounce
 "
       style={{
         left: position.x,
